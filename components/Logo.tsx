@@ -1,0 +1,62 @@
+import React from 'react';
+import { Svg, Path, G, Text } from 'react-native-svg';
+
+// Este componente renderiza el logotipo de la aplicación en formato SVG.
+// Puedes ajustar el 'width' y 'height' para cambiar su tamaño.
+export default function Logo({ width = 200, height = 200 }) {
+  return (
+    <Svg
+      width={width}
+      height={height}
+      viewBox="0 0 100 125"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <G>
+        {/* Melena del león */}
+        <Path
+          d="M50 0 L95 25 L85 60 L50 90 L15 60 L5 25 Z"
+          fill="#FFC107" // Un color dorado/ámbar
+        />
+        {/* Cara del león */}
+        <Path
+          d="M50 15 L80 35 L75 60 L50 80 L25 60 L20 35 Z"
+          fill="#FFD54F"
+        />
+        {/* Pin de ubicación (nariz y boca) */}
+        <Path
+          d="M50 40 C45 40 40 45 40 50 C40 60 50 75 50 75 C50 75 60 60 60 50 C60 45 55 40 50 40 Z"
+          fill="#424242" // Un gris oscuro para el pin
+        />
+        <Path
+          d="M50 45 C52.76 45 55 47.24 55 50 C55 52.76 52.76 55 50 55 C47.24 55 45 52.76 45 50 C45 47.24 47.24 45 50 45 Z"
+          fill="#FFFFFF" // Círculo interior del pin
+        />
+      </G>
+      {/* Texto del Logotipo */}
+      <Text
+        fill="#333333"
+        stroke="none"
+        fontSize="12"
+        fontWeight="bold"
+        x="50"
+        y="105"
+        textAnchor="middle"
+        fontFamily="Arial, sans-serif"
+      >
+        Mandaditos
+      </Text>
+      <Text
+        fill="#555555"
+        stroke="none"
+        fontSize="10"
+        fontWeight="normal"
+        x="50"
+        y="118"
+        textAnchor="middle"
+        fontFamily="Arial, sans-serif"
+      >
+        LEÓN
+      </Text>
+    </Svg>
+  );
+}
