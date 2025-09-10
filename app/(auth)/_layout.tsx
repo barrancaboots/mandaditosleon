@@ -1,58 +1,12 @@
-import { Tabs } from 'expo-router';
-import { Home, ShoppingCart, Clock, User } from 'lucide-react-native';
-import { t } from '../../lib/i18n';
+// direccionbarrancaboots-max/mandaditosleon/mandaditosleon-2dfda77bcc712d52b150397d8f1b593b59e76696/app/(auth)/_layout.tsx
 
-export default function TabLayout() {
+import { Stack } from 'expo-router';
+
+export default function AuthLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#2563EB',
-        tabBarInactiveTintColor: '#64748B',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E2E8F0',
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('home'),
-          tabBarIcon: ({ size, color }) => (
-            <Home size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="cart"
-        options={{
-          title: t('cart'),
-          tabBarIcon: ({ size, color }) => (
-            <ShoppingCart size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: t('orders'),
-          tabBarIcon: ({ size, color }) => (
-            <Clock size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t('profile'),
-          tabBarIcon: ({ size, color }) => (
-            <User size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+    </Stack>
   );
 }
