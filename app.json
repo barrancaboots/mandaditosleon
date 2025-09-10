@@ -1,47 +1,51 @@
 {
-  "expo": {
-    "name": "mandaditos-nuevo",
-    "slug": "mandaditos-nuevo",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "mandaditosnuevo",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.mluevanov.mandaditosnuevo"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      "expo-localization"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "956b239a-00f1-46c8-b96c-d60cf02b0f47"
-      }
-    },
-    "owner": "mandaditosleon"
-  }
+  "name": "mandaditos-nuevo",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "author": "Mario Felipe Luevano Villagomez",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest --watchAll"
+  },
+  "jest": {
+    "preset": "jest-expo"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.1.0",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-navigation/native": "^7.1.6",
+    "@supabase/supabase-js": "^2.57.4",
+    "expo": "~53.0.22",
+    "expo-font": "~13.3.2",
+    "expo-linking": "~7.1.7",
+    "expo-localization": "~16.1.6",
+    "expo-router": "~5.1.5",
+    "expo-splash-screen": "~0.30.10",
+    "expo-status-bar": "~2.2.3",
+    "expo-system-ui": "~5.0.11",
+    "expo-web-browser": "~14.2.0",
+    "i18n-js": "^4.5.1",
+    "lucide-react-native": "^0.542.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-native": "0.79.6",
+    "react-native-reanimated": "~3.17.4",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
+    "react-native-svg": "15.11.2",
+    "react-native-url-polyfill": "^2.0.0",
+    "react-native-web": "~0.20.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.0.10",
+    "jest": "^29.2.1",
+    "jest-expo": "~53.0.10",
+    "react-test-renderer": "19.0.0",
+    "typescript": "~5.8.3"
+  },
+  "private": true
 }

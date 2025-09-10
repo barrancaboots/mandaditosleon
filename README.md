@@ -1,5 +1,14 @@
-# Mandaditos León 🛵
 
+## 📜 Licencia
+
+Este proyecto está licenciado bajo la **Creative Commons Atribución-NoComercial-SinDerivadas 4.0 Internacional**.
+
+Esto significa que eres libre de copiar y redistribuir el código para fines no comerciales, siempre y cuando des el crédito apropiado al autor original, **Mario Felipe Luevano Villagomez**.
+
+⚠️ **No está permitido** el uso de este software para fines comerciales ni la distribuc
+ión de versiones modificadas.
+
+Para más detalles, consulta el archivo `LICENSE` en el repositorio.
 ![Logo de Mandaditos León](https://raw.githubusercontent.com/direccionbarrancaboots-max/mandaditosleon/main/assets/images/adaptive-icon.png)
 
 **Mandaditos León** es una aplicación móvil completa para un servicio de delivery enfocado en supermercados, desarrollada con React Native y Expo.
