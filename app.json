@@ -47,5 +47,13 @@
     "react-test-renderer": "19.0.0",
     "typescript": "~5.8.3"
   },
-  "private": true
+  "private": true,
+  "android": {
+    "package": "com.mandaditosleon.mandaditosnuevo"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "956b239a-00f1-46c8-b96c-d60cf02b0f47"
+    }
+  }
 }

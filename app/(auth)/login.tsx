@@ -22,24 +22,31 @@ export default function LoginScreen() {
   const router = useRouter();
 
   async function handleLogin() {
-    if (!email || !password) {
-      Alert.alert('Campos requeridos', 'Por favor, ingresa tu correo y contraseña.');
-      return;
-    }
-
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    if (error) {
-      Alert.alert('Error al iniciar sesión', error.message);
-    }
-    // Si el login es exitoso, el listener de AuthProvider debería redirigir automáticamente.
-    setLoading(false);
+  if (!email || !password) {
+    Alert.alert('Campos requeridos', 'Por favor, ingresa tu correo y contraseña.');
+    return;
   }
 
+  setLoading(true);
+  // La función signInWithPassword devuelve un objeto con 'data' y 'error'
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password,
+  });
+
+  setLoading(false);
+
+  if (error) {
+    // Si hay un error, lo mostramos
+    Alert.alert('Error al iniciar sesión', error.message);
+  } else if (data.session) {
+    // ¡Éxito! Si no hay error y tenemos una sesión, redirigimos manualmente.
+    // Usamos replace para que el usuario no pueda volver atrás a la pantalla de login.
+    router.replace('/(tabs)');
+  }
+  // No necesitamos hacer nada más. El listener del AuthProvider también se activará,
+  // pero nuestra redirección manual es más inmediata.
+}
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView

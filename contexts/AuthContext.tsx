@@ -1,14 +1,13 @@
+// contexts/AuthContext.tsx
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { Database } from '../types/database'; // <-- Importar el tipo principal de la BD
+import { logEvent } from '../lib/logger';
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  role: 'customer' | 'admin' | 'delivery';
-}
+// Derivamos el tipo Profile directamente del esquema de la base de datos.
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthContextType {
   session: Session | null;
@@ -58,8 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await fetchProfile(session.user.id);
         } else {
           setProfile(null);
-          setLoading(false);
         }
+        // El loading se gestiona dentro de fetchProfile
       }
     );
 
@@ -67,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -75,9 +75,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) throw error;
+      // Ahora 'data' coincide perfectamente con el tipo 'Profile'
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -88,7 +90,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      logEvent('warn', `Intento de login fallido para: ${email}`, { error: error.message });
+      throw error;
+    }
+    logEvent('info', `Usuario ${email} ha iniciado sesión.`);
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
@@ -105,8 +111,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email || 'desconocido';
+
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      logEvent('error', `Error al cerrar sesión para ${userEmail}`, { error: error.message });
+      throw error;
+    }
+    logEvent('info', `Usuario ${userEmail} ha cerrado sesión.`);
   };
 
   const value = {
@@ -121,3 +134,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

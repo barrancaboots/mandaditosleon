@@ -1,4 +1,7 @@
+// contexts/CartContext.tsx
+
 import React, { createContext, useContext, useReducer } from 'react';
+import { devLog } from '../lib/devLogger'; // <-- Importar el nuevo logger
 
 interface CartItem {
   id: string;
@@ -28,11 +31,15 @@ const CartContext = createContext<{
 }>({} as any);
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
+  // Log general para CUALQUIER acción que se dispare
+  devLog('🛒 Acción de carrito disparada:', action.type, 'Payload:', (action as any).payload);
+
   switch (action.type) {
     case 'ADD_ITEM': {
       const existingItem = state.items.find(item => item.id === action.payload.id);
       
       if (existingItem) {
+        devLog(`   -> El producto "${action.payload.name}" ya existe. Incrementando cantidad.`);
         const items = state.items.map(item =>
           item.id === action.payload.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -44,6 +51,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         };
       }
       
+      devLog(`   -> Añadiendo nuevo producto al carrito: "${action.payload.name}".`);
       const items = [...state.items, { ...action.payload, quantity: 1 }];
       return {
         items,

@@ -1,29 +1,20 @@
-// direccionbarrancaboots-max/mandaditosleon/mandaditosleon-2dfda77bcc712d52b150397d8f1b593b59e76696/hooks/useProducts.ts
+// hooks/useProducts.ts
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { devLog } from '../lib/devLogger';
+// Importamos el tipo principal de la BD para derivar nuestros tipos locales.
+import { Database } from '../types/database';
 
-// Definimos las interfaces para mayor claridad y seguridad de tipos
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  image_url: string | null;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  category_id: string;
-}
+// Derivamos los tipos directamente del esquema para máxima consistencia.
+type Category = Database['public']['Tables']['categories']['Row'];
+type Product = Database['public']['Tables']['products']['Row'];
 
 export function useProducts() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  // El ID de la categoría es un número, como en la base de datos.
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -32,43 +23,50 @@ export function useProducts() {
   }, []);
 
   useEffect(() => {
-    if (selectedCategory) {
+    if (selectedCategory !== null) {
       fetchProducts(selectedCategory);
     }
   }, [selectedCategory]);
 
   const fetchCategories = async () => {
+    devLog('Iniciando fetch de categorías...');
     try {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
-      setCategories(data || []);
       
-      if (data && data.length > 0 && !selectedCategory) {
-        setSelectedCategory(data[0].id);
+      const categoriesData = data || [];
+      setCategories(categoriesData);
+      devLog('✅ Éxito en fetch de categorías:', categoriesData);
+
+      if (categoriesData.length > 0 && selectedCategory === null) {
+        // Esta lógica ahora es segura porque TypeScript sabe que `id` existe y es de tipo `number`.
+        setSelectedCategory(categoriesData[0].id);
       }
     } catch (error) {
+      devLog('❌ Error en fetch de categorías:', error);
       console.error('Error fetching categories:', error);
     }
   };
 
-  const fetchProducts = async (categoryId: string) => {
+  const fetchProducts = async (categoryId: number) => {
+    devLog(`Iniciando fetch de productos para categoría ID: ${categoryId}`);
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('category_id', categoryId)
-        .eq('is_available', true)
         .order('name');
 
       if (error) throw error;
       setProducts(data || []);
+      devLog(`✅ Éxito en fetch de productos para categoría ${categoryId}:`, data);
     } catch (error) {
+      devLog(`❌ Error en fetch de productos para categoría ${categoryId}:`, error);
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
@@ -78,7 +76,7 @@ export function useProducts() {
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchCategories();
-    if (selectedCategory) {
+    if (selectedCategory !== null) {
       await fetchProducts(selectedCategory);
     }
     setRefreshing(false);
@@ -94,3 +92,4 @@ export function useProducts() {
     onRefresh 
   };
 }
+
