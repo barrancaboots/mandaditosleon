@@ -5,102 +5,17 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Logo from '../../components/Logo'; // Asegúrate que la ruta al logo es correcta
-import { supabase } from '../../lib/supabase'; // Asegúrate que la ruta a supabase es correcta
+import AnimatedLogo from '../../components/AnimatedLogo';
+import { supabase } from '../../lib/supabase';
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  async function handleLogin() {
-  if (!email || !password) {
-    Alert.alert('Campos requeridos', 'Por favor, ingresa tu correo y contraseña.');
-    return;
-  }
-
-  setLoading(true);
-  // La función signInWithPassword devuelve un objeto con 'data' y 'error'
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password,
-  });
-
-  setLoading(false);
-
-  if (error) {
-    // Si hay un error, lo mostramos
-    Alert.alert('Error al iniciar sesión', error.message);
-  } else if (data.session) {
-    // ¡Éxito! Si no hay error y tenemos una sesión, redirigimos manualmente.
-    // Usamos replace para que el usuario no pueda volver atrás a la pantalla de login.
-    router.replace('/(tabs)');
-  }
-  // No necesitamos hacer nada más. El listener del AuthProvider también se activará,
-  // pero nuestra redirección manual es más inmediata.
-}
-  return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingContainer}
-      >
-        <View style={styles.logoContainer}>
-          <Logo width={180} height={180} />
-          <Text style={styles.title}>Mandaditos León</Text>
-          <Text style={styles.subtitle}>Tu mandado, hecho.</Text>
-        </View>
-
-        <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="correo@ejemplo.com"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            style={[styles.button, styles.loginButton]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#424242" />
-            ) : (
-              <Text style={styles.buttonText}>Iniciar Sesión</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.registerButton]}
-            onPress={() => router.push('/(auth)/register')}
-            disabled={loading}
-          >
-            <Text style={[styles.buttonText, styles.registerButtonText]}>¿No tienes cuenta? Regístrate</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-}
-
+// Los estilos se definen antes del componente para evitar errores
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -149,7 +64,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButton: {
-    backgroundColor: '#FFC107', // Un amarillo dorado que combina con el león
+    backgroundColor: '#FFC107',
   },
   registerButton: {
     backgroundColor: 'transparent',
@@ -165,3 +80,105 @@ const styles = StyleSheet.create({
   },
 });
 
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  async function handleLogin() {
+    if (!email || !password) {
+      Alert.alert('Campos requeridos', 'Por favor, ingresa tu correo y contraseña.');
+      return;
+    }
+
+    setLoading(true);
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (loginError) {
+      setLoading(false);
+      Alert.alert('Error al iniciar sesión', loginError.message);
+      return;
+    }
+
+    if (loginData.user) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', loginData.user.id)
+        .single();
+
+      setLoading(false);
+
+      if (profileError) {
+        Alert.alert('Error al obtener el perfil', 'No se pudo cargar la información del usuario.');
+        router.replace('/(tabs)');
+      } else if (profile) {
+        if (profile.role === 'admin') {
+          router.replace('/admin');
+        } else {
+          router.replace('/(tabs)');
+        }
+      }
+    } else {
+      setLoading(false);
+      Alert.alert('Error', 'No se pudo obtener la sesión del usuario.');
+    }
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingContainer}
+      >
+        <View style={styles.logoContainer}>
+          <AnimatedLogo width={180} height={180} />
+          <Text style={styles.title}>Mandaditos León</Text>
+          <Text style={styles.subtitle}>Tu mandado, hecho.</Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="correo@ejemplo.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <TouchableOpacity
+            style={[styles.button, styles.loginButton]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#424242" />
+            ) : (
+              <Text style={styles.buttonText}>Iniciar Sesión</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.registerButton]}
+            onPress={() => router.push('/(auth)/register')}
+            disabled={loading}
+          >
+            <Text style={[styles.buttonText, styles.registerButtonText]}>¿No tienes cuenta? Regístrate</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}

@@ -52,25 +52,25 @@ export default function HomeScreen() {
     }
   }, [selectedCategory]);
 
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
+ // En app/(tabs)/cart.tsx
+
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
         .order('name');
 
-      if (error) throw error;
-      setCategories(data || []);
-      
-      if (data && data.length > 0 && !selectedCategory) {
-        setSelectedCategory(data[0].id);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
+    if (error) throw error;
+    setCategories(data || []);
+    
+    if (data && data.length > 0 && !selectedCategory) {
+      setSelectedCategory(data[0].id);
     }
-  };
-
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+  }
+};
   const fetchProducts = async (categoryId: string) => {
     setLoading(true);
     try {

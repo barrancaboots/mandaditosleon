@@ -1,14 +1,15 @@
 // contexts/CartContext.tsx
 
 import React, { createContext, useContext, useReducer } from 'react';
-import { devLog } from '../lib/devLogger'; // <-- Importar el nuevo logger
+import { Database } from '../types/database'; // 👈 Importamos el tipo principal de la BD
+import { devLog } from '../lib/devLogger';
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
+// Derivamos el tipo Product para que siempre coincida con el esquema
+type Product = Database['public']['Tables']['products']['Row'];
+
+// Creamos un tipo CartItem que es un Product + la propiedad quantity
+interface CartItem extends Product {
   quantity: number;
-  image_url?: string | null;
 }
 
 interface CartState {
@@ -16,22 +17,22 @@ interface CartState {
   total: number;
 }
 
+// Actualizamos las acciones para que usen los tipos correctos
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> }
-  | { type: 'REMOVE_ITEM'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'ADD_ITEM'; payload: Product } // 👈 CAMBIO: El payload es un objeto Product completo
+  | { type: 'REMOVE_ITEM'; payload: number } // 👈 CAMBIO: El ID del producto ahora es un 'number'
+  | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } } // 👈 CAMBIO: El ID es 'number'
   | { type: 'CLEAR_CART' };
 
 const CartContext = createContext<{
   state: CartState;
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addItem: (item: Product) => void; // 👈 CAMBIO: La función espera un Product
+  removeItem: (id: number) => void; // 👈 CAMBIO: El ID es 'number'
+  updateQuantity: (id: number, quantity: number) => void; // 👈 CAMBIO: El ID es 'number'
   clearCart: () => void;
 }>({} as any);
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
-  // Log general para CUALQUIER acción que se dispare
   devLog('🛒 Acción de carrito disparada:', action.type, 'Payload:', (action as any).payload);
 
   switch (action.type) {
@@ -52,6 +53,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       }
       
       devLog(`   -> Añadiendo nuevo producto al carrito: "${action.payload.name}".`);
+      // Añadimos la propiedad 'quantity' al producto que recibimos
       const items = [...state.items, { ...action.payload, quantity: 1 }];
       return {
         items,
@@ -59,6 +61,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       };
     }
     
+    // ... (El resto de los casos del reducer ya son compatibles con el ID numérico)
     case 'REMOVE_ITEM': {
       const items = state.items.filter(item => item.id !== action.payload);
       return {
@@ -91,15 +94,15 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
 
-  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+  const addItem = (item: Product) => {
     dispatch({ type: 'ADD_ITEM', payload: item });
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: number) => {
     dispatch({ type: 'REMOVE_ITEM', payload: id });
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: number, quantity: number) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
 
