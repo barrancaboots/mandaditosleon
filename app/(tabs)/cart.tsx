@@ -1,202 +1,113 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
   StyleSheet,
   Image,
-  RefreshControl,
-  Alert,
+  TouchableOpacity,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, ShoppingCart } from 'lucide-react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCart } from '../../contexts/CartContext';
-import { supabase } from '../../lib/supabase';
-import { t } from '../../lib/i18n';
+import { router } from 'expo-router';
+import { useCart } from '@/contexts/CartContext';
+import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react-native';
+import { Database } from '@/types/database';
 
-// Las interfaces no cambian
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  image_url: string | null;
-}
+type CartItem = Database['public']['Tables']['products']['Row'] & { quantity: number };
 
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  category_id: string;
-}
+// Componente para cada fila de producto en el carrito
+const CartListItem = ({ item, onUpdateQuantity, onRemoveItem }: { item: CartItem, onUpdateQuantity: (id: number, quantity: number) => void, onRemoveItem: (id: number) => void }) => (
+  <View style={styles.cartItemContainer}>
+    {item.image_base64 ? (
+      <Image
+        source={{ uri: `data:image/png;base64,${item.image_base64}` }}
+        style={styles.cartItemImage}
+      />
+    ) : (
+      <View style={[styles.cartItemImage, styles.placeholderImage]} />
+    )}
+    <View style={styles.cartItemDetails}>
+      <Text style={styles.cartItemName} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.cartItemPrice}>${item.price.toFixed(2)}</Text>
+    </View>
+    <View style={styles.quantityControl}>
+      <TouchableOpacity onPress={() => onUpdateQuantity(item.id, item.quantity - 1)}>
+        <Minus size={20} color="#1A1A1A" />
+      </TouchableOpacity>
+      <Text style={styles.quantityText}>{item.quantity}</Text>
+      <TouchableOpacity onPress={() => onUpdateQuantity(item.id, item.quantity + 1)}>
+        <Plus size={20} color="#1A1A1A" />
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity onPress={() => onRemoveItem(item.id)} style={styles.removeButton}>
+        <Trash2 size={20} color="#EF4444" />
+    </TouchableOpacity>
+  </View>
+);
 
-export default function HomeScreen() {
-  const { profile } = useAuth();
-  const { addItem, state } = useCart();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+export default function CartScreen() {
+  const { state, updateQuantity, removeItem } = useCart();
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchProducts(selectedCategory);
-    }
-  }, [selectedCategory]);
-
- // En app/(tabs)/cart.tsx
-
-const fetchCategories = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-        .order('name');
-
-    if (error) throw error;
-    setCategories(data || []);
-    
-    if (data && data.length > 0 && !selectedCategory) {
-      setSelectedCategory(data[0].id);
-    }
-  } catch (error) {
-    console.error('Error fetching categories:', error);
+  // Caso para cuando el carrito está vacío
+  if (!state.items || state.items.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <ArrowLeft size={24} color="#1A1A1A" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Mi Carrito</Text>
+            <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.emptyContainer}>
+          <ShoppingBag size={80} color="#E5E7EB" />
+          <Text style={styles.emptyTitle}>Tu carrito está vacío</Text>
+          <Text style={styles.emptySubtitle}>Añade productos para verlos aquí.</Text>
+          <TouchableOpacity style={styles.emptyButton} onPress={() => router.replace('/(tabs)')}>
+            <Text style={styles.emptyButtonText}>Ir a la tienda</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
-};
-  const fetchProducts = async (categoryId: string) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('category_id', categoryId)
-        .eq('is_available', true)
-        .order('name');
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchCategories();
-    if (selectedCategory) {
-      await fetchProducts(selectedCategory);
-    }
-    setRefreshing(false);
-  };
-
-  const handleAddToCart = (product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-    });
-    
-    Alert.alert(t('success'), t('addToCartSuccess', { name: product.name }));
-  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>{t('welcome')}</Text>
-          <Text style={styles.userName}>{profile?.full_name || t('customer')}</Text>
-        </View>
-        <View style={styles.cartBadge}>
-          <ShoppingCart size={24} color="#64748B" />
-          {state.items.length > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{state.items.length}</Text>
-            </View>
-          )}
-        </View>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#1A1A1A" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mi Carrito ({state.items.length})</Text>
+        <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView 
-        style={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('categories')}</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.categoriesContainer}>
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[
-                    styles.categoryCard,
-                    selectedCategory === category.id && styles.categoryCardActive,
-                  ]}
-                  onPress={() => setSelectedCategory(category.id)}
-                >
-                  {category.image_url && (
-                    <Image source={{ uri: category.image_url }} style={styles.categoryImage} />
-                  )}
-                  <Text
-                    style={[
-                      styles.categoryName,
-                      selectedCategory === category.id && styles.categoryNameActive,
-                    ]}
-                  >
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+      <FlatList
+        data={state.items}
+        renderItem={({ item }) => (
+          <CartListItem 
+            item={item} 
+            onUpdateQuantity={updateQuantity} 
+            onRemoveItem={removeItem} 
+          />
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}
+      />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('products')}</Text>
-          {loading ? (
-            <Text style={styles.loadingText}>{t('loadingProducts')}</Text>
-          ) : (
-            <View style={styles.productsGrid}>
-              {products.map((product) => (
-                <View key={product.id} style={styles.productCard}>
-                  {product.image_url && (
-                    <Image source={{ uri: product.image_url }} style={styles.productImage} />
-                  )}
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    {product.description && (
-                      <Text style={styles.productDescription} numberOfLines={2}>
-                        {product.description}
-                      </Text>
-                    )}
-                    <View style={styles.productFooter}>
-                      <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
-                      <TouchableOpacity
-                        style={styles.addButton}
-                        onPress={() => handleAddToCart(product)}
-                      >
-                        <Plus size={20} color="#FFFFFF" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+      {/* --- Resumen y Botón de Checkout --- */}
+      <View style={styles.footer}>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryText}>Subtotal</Text>
+          <Text style={styles.summaryText}>${state.total.toFixed(2)}</Text>
         </View>
-      </ScrollView>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryTotalText}>Total</Text>
+          <Text style={styles.summaryTotalText}>${state.total.toFixed(2)}</Text>
+        </View>
+        <TouchableOpacity style={styles.checkoutButton} onPress={() => router.push('/checkout')}>
+          <Text style={styles.checkoutButtonText}>Proceder al Pago</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -204,143 +115,135 @@ const fetchCategories = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F7F7F7',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingVertical: 15,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
-  greeting: {
-    fontSize: 14,
-    color: '#64748B',
+  backButton: {
+    padding: 5,
   },
-  userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1E293B',
+  headerTitle: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 18,
+    color: '#1A1A1A',
   },
-  cartBadge: {
-    position: 'relative',
+  cartItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 10,
+    marginBottom: 15,
   },
-  badge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#EF4444',
+  cartItemImage: {
+    width: 70,
+    height: 70,
     borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    resizeMode: 'contain',
+    backgroundColor: '#F7F7F7',
+  },
+  placeholderImage: {
+      backgroundColor: '#E5E7EB',
+  },
+  cartItemDetails: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  cartItemName: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 16,
+    color: '#1A1A1A',
+  },
+  cartItemPrice: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  quantityControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F7',
+    borderRadius: 10,
+    padding: 5,
+  },
+  quantityText: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 16,
+    marginHorizontal: 15,
+  },
+  removeButton: {
+      marginLeft: 10,
+      padding: 5,
+  },
+  footer: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  summaryText: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  summaryTotalText: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 18,
+    color: '#1A1A1A',
+  },
+  checkoutButton: {
+    backgroundColor: '#FFC107',
+    borderRadius: 15,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  checkoutButtonText: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 18,
+    color: '#1A1A1A',
+  },
+  emptyContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 40,
   },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
+  emptyTitle: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 22,
+    color: '#1A1A1A',
+    marginTop: 20,
   },
-  content: {
-    flex: 1,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 16,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  categoryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    minWidth: 100,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  categoryCardActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
-  },
-  categoryImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginBottom: 8,
-  },
-  categoryName: {
-    fontSize: 14,
-    color: '#64748B',
+  emptySubtitle: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 16,
+    color: '#6B7280',
     textAlign: 'center',
+    marginTop: 10,
   },
-  categoryNameActive: {
-    color: '#FFFFFF',
+  emptyButton: {
+      backgroundColor: '#FFC107',
+      borderRadius: 15,
+      paddingVertical: 15,
+      paddingHorizontal: 40,
+      marginTop: 30,
   },
-  loadingText: {
-    textAlign: 'center',
-    color: '#64748B',
+  emptyButtonText: {
+      fontFamily: 'Poppins_600SemiBold',
     fontSize: 16,
-    marginTop: 32,
-  },
-  productsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  productCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: '48%',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  productImage: {
-    width: '100%',
-    height: 120,
-    backgroundColor: '#F1F5F9',
-  },
-  productInfo: {
-    padding: 12,
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 4,
-  },
-  productDescription: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 8,
-    lineHeight: 16,
-  },
-  productFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#059669',
-  },
-  addButton: {
-    backgroundColor: '#2563EB',
-    borderRadius: 8,
-    padding: 8,
+    color: '#1A1A1A',
   },
 });

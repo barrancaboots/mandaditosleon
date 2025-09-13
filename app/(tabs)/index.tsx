@@ -54,89 +54,91 @@ export default function HomeScreen() {
     addItem(product);
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView stickyHeaderIndices={[1]}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Hola de nuevo,</Text>
-            <Text style={styles.userName}>{profile?.full_name || 'Cliente'}</Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/cart')} style={styles.cartButton}>
-            <ShoppingCartIcon size={28} color="#1A1A1A" />
-            {cartState.items.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartState.items.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Search size={22} color="#6B7280" />
-            <TextInput
-              placeholder="Buscar productos..."
-              style={styles.searchInput}
-            />
-          </View>
-        </View>
-        
+  const ListHeader = () => (
+    <>
+      <View style={styles.header}>
         <View>
-          <Text style={styles.sectionTitle}>Categorías</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScrollView}>
-            {/* 👇 --- INICIO DE LA MODIFICACIÓN --- 👇 */}
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryContainer}
-                onPress={() => setSelectedCategory(category.id)}
-              >
-                <View
-                  style={[
-                    styles.categoryIconContainer,
-                    selectedCategory === category.id && styles.categoryIconContainerActive,
-                  ]}
-                >
-                  {category.image_base64 && (
-                    <Image
-                      source={{ uri: `data:image/png;base64,${category.image_base64}` }}
-                      style={styles.categoryIcon}
-                    />
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.categoryText,
-                    selectedCategory === category.id && styles.categoryTextActive,
-                  ]}
-                >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            {/* ☝️ --- FIN DE LA MODIFICACIÓN --- ☝️ */}
-          </ScrollView>
+          <Text style={styles.greeting}>Hola de nuevo,</Text>
+          <Text style={styles.userName}>{profile?.full_name || 'Cliente'}</Text>
         </View>
-
-        <View style={styles.productsSection}>
-          <Text style={styles.sectionTitle}>Productos</Text>
-          <FlatList
-            data={products}
-            renderItem={({ item }) => <ProductCard product={item} onAddToCart={handleAddToCart} />}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            scrollEnabled={false}
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
+        <TouchableOpacity onPress={() => router.push('/(tabs)/cart')} style={styles.cartButton}>
+          <ShoppingCartIcon size={28} color="#1A1A1A" />
+          {cartState.items.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartState.items.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Search size={22} color="#6B7280" />
+          <TextInput
+            placeholder="Buscar productos..."
+            style={styles.searchInput}
           />
         </View>
-      </ScrollView>
+      </View>
+      
+      <View>
+        <Text style={styles.sectionTitle}>Categorías</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScrollView}>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              style={styles.categoryContainer}
+              onPress={() => setSelectedCategory(category.id)}
+            >
+              <View
+                style={[
+                  styles.categoryIconContainer,
+                  selectedCategory === category.id && styles.categoryIconContainerActive,
+                ]}
+              >
+                {category.image_base64 && (
+                  <Image
+                    source={{ uri: `data:image/png;base64,${category.image_base64}` }}
+                    style={styles.categoryIcon}
+                  />
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === category.id && styles.categoryTextActive,
+                ]}
+              >
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      
+      <Text style={styles.sectionTitle}>Productos</Text>
+    </>
+  );
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <FlatList
+        ListHeaderComponent={ListHeader} // <-- La cabecera ahora es parte de la lista
+        data={products}
+        renderItem={({ item }) => <ProductCard product={item} onAddToCart={handleAddToCart} />}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        contentContainerStyle={styles.productsSection}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        stickyHeaderIndices={[0]} // <-- Esto hace que la cabecera completa se quede fija
+      />
     </SafeAreaView>
   );
 }
 
+// --- Estilos para la nueva UI ---
+// (Los estilos son los mismos que en la versión anterior, solo se ajusta el padding de la lista de productos)
 const styles = StyleSheet.create({
-  // ... (otros estilos no cambian)
   container: {
     flex: 1,
     backgroundColor: '#F7F7F7',
@@ -148,6 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 15,
+    backgroundColor: '#F7F7F7', // Color de fondo para que no sea transparente
   },
   greeting: {
     fontFamily: 'Poppins_400Regular',
@@ -204,20 +207,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 20,
     marginBottom: 15,
+    backgroundColor: '#F7F7F7',
   },
   categoriesScrollView: {
-    paddingLeft: 20, // Ajuste para que el primer ítem no se pegue al borde
+    paddingLeft: 20,
+    backgroundColor: '#F7F7F7',
+    paddingBottom: 5,
   },
-  // 👇 --- INICIO DE NUEVOS ESTILOS PARA CATEGORÍAS --- 👇
   categoryContainer: {
     alignItems: 'center',
     marginRight: 20,
-    width: 70, // Ancho fijo para cada categoría
+    width: 70,
   },
   categoryIconContainer: {
     width: 60,
     height: 60,
-    borderRadius: 30, // Círculo perfecto
+    borderRadius: 30,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -244,9 +249,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_600SemiBold',
     color: '#1A1A1A',
   },
-  // ☝️ --- FIN DE NUEVOS ESTILOS PARA CATEGORÍAS --- ☝️
   productsSection: {
     paddingHorizontal: 20,
+    backgroundColor: '#F7F7F7'
   },
   productCard: {
     backgroundColor: '#FFFFFF',

@@ -1,58 +1,39 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons'; // Para los iconos
+import { Redirect } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-export default function TabLayout() {
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false, // Ocultamos el encabezado de cada pestaña
-        tabBarActiveTintColor: '#FFC107', // Color del ícono activo
-        tabBarInactiveTintColor: '#888', // Color del ícono inactivo
-        tabBarStyle: styles.tabBar, // Aplicamos estilos a la barra
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Inicio',
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="home" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="orders" // Asumiendo que tendrás una pantalla de pedidos
-        options={{
-          title: 'Pedidos',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons size={28} name="list-alt" color={color} />
-          ),
-        }}
-      />
-       <Tabs.Screen
-        name="profile" // Asumiendo que tendrás una pantalla de perfil
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="user" color={color} />
-          ),
-        }}
-      />
-    </Tabs>
-  );
+export default function RootIndex() {
+  const { session, profile, loading } = useAuth();
+
+  // 1. Muestra un indicador de carga mientras se verifica la sesión.
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#FFC107" />
+      </View>
+    );
+  }
+
+  // 2. Si no hay sesión, redirige al usuario a la pantalla de login.
+  if (!session) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  // 3. Si hay sesión y el usuario es un administrador, lo redirige al panel de admin.
+  if (profile?.role === 'admin') {
+    return <Redirect href="/admin" />;
+  }
+
+  // 4. Para cualquier otro caso (cliente, repartidor, etc.), lo redirige a la pantalla principal.
+  return <Redirect href="/(tabs)" />;
 }
 
-// ESTA ES LA PARTE QUE SOLUCIONA TU ERROR
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-    height: 60,
-    paddingBottom: 5,
-    paddingTop: 5,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F7',
   },
 });
-

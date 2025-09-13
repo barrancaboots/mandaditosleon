@@ -137,7 +137,7 @@ export default function LoginScreen() {
       >
         <View style={styles.logoContainer}>
           <AnimatedLogo width={180} height={180} />
-          <Text style={styles.title}>Mandaditos León</Text>
+         
           <Text style={styles.subtitle}>Tu mandado, hecho.</Text>
         </View>
 

@@ -1,13 +1,12 @@
-// app/index.tsx
-
+import React from 'react';
 import { Redirect } from 'expo-router';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function RootIndex() {
-  const { session, loading } = useAuth();
+  const { session, profile, loading } = useAuth();
 
-  // Muestra un indicador de carga mientras se verifica la sesión
+  // Muestra un indicador de carga mientras se obtiene la sesión
   if (loading) {
     return (
       <View style={styles.container}>
@@ -16,21 +15,18 @@ export default function RootIndex() {
     );
   }
 
-  // --- MODIFICACIÓN PARA DESARROLLO ---
-  // Redirigimos siempre a la pantalla de login de desarrollo.
-  // ¡Recuerda cambiar esto antes de pasar a producción!
-  return <Redirect href="dev-login" />;
-
-  /*
-  // --- CÓDIGO ORIGINAL DE PRODUCCIÓN ---
+  // Si no hay sesión, redirige al login
   if (!session) {
-    // Si no hay sesión, va al login normal.
     return <Redirect href="/(auth)/login" />;
   }
 
-  // Si hay sesión, va a la pantalla principal.
+  // Si el usuario es admin, redirige al panel de admin
+  if (profile?.role === 'admin') {
+    return <Redirect href="/admin" />;
+  }
+
+  // Para todos los demás, redirige a la pantalla principal
   return <Redirect href="/(tabs)" />;
-  */
 }
 
 const styles = StyleSheet.create({
@@ -38,6 +34,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F7F7F7',
   },
 });
