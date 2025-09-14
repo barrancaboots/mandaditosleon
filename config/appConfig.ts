@@ -9,4 +9,4 @@
  * IMPORTANTE: Poner en `false` para compilaciones de producción.
  * --------------------------------------------------------------------
  */
-export const IS_DEV_MODE = false;   
+export const IS_DEV_MODE = true;   

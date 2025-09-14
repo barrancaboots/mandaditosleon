@@ -1,39 +1,40 @@
-import React from 'react';
-import { Redirect } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { CartProvider } from '@/contexts/CartContext';
+import AnimatedSplashScreen from '@/components/AnimatedSplashScreen';
+import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
 
-export default function RootIndex() {
-  const { session, profile, loading } = useAuth();
+SplashScreen.preventAutoHideAsync();
 
-  // Muestra un indicador de carga mientras se obtiene la sesión
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FFC107" />
-      </View>
-    );
+export default function RootLayout() {
+  const [fontsLoaded, error] = useFonts({ Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold });
+  const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
+
+  useEffect(() => {
+    if (error) console.error("Error cargando fuentes:", error);
+    if (fontsLoaded && splashAnimationFinished) SplashScreen.hideAsync();
+  }, [fontsLoaded, splashAnimationFinished, error]);
+  
+  const handleAnimationFinish = () => setSplashAnimationFinished(true);
+
+  if (!fontsLoaded) return null;
+
+  if (!splashAnimationFinished) {
+    return <AnimatedSplashScreen onAnimationFinish={handleAnimationFinish} />;
   }
 
-  // Si no hay sesión, redirige al login
-  if (!session) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
-  // Si el usuario es admin, redirige al panel de admin
-  if (profile?.role === 'admin') {
-    return <Redirect href="/admin" />;
-  }
-
-  // Para todos los demás, redirige a la pantalla principal
-  return <Redirect href="/(tabs)" />;
+  return (
+    <SafeAreaProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+          <StatusBar style="auto" />
+        </CartProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F7F7F7',
-  },
-});

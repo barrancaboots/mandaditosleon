@@ -1,5 +1,4 @@
-
-## 📜 Licencia
+--- ## 📜 Licencia
 
 Este proyecto está licenciado bajo la **Creative Commons Atribución-NoComercial-SinDerivadas 4.0 Internacional**.
 

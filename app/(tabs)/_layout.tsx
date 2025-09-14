@@ -1,39 +1,79 @@
 import React from 'react';
-import { Redirect } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Tabs } from 'expo-router';
+import { StyleSheet } from 'react-native';
+import { Home, ShoppingCart, ListOrdered, User, MapPin } from 'lucide-react-native'; // 👈 Importamos los nuevos iconos
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCart } from '@/contexts/CartContext';
 
-export default function RootIndex() {
-  const { session, profile, loading } = useAuth();
+export default function TabLayout() {
+  const { bottom } = useSafeAreaInsets();
+  const { state: cartState } = useCart();
+  const iconSize = 26; // 👈 Tamaño estandarizado
 
-  // 1. Muestra un indicador de carga mientras se verifica la sesión.
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FFC107" />
-      </View>
-    );
-  }
-
-  // 2. Si no hay sesión, redirige al usuario a la pantalla de login.
-  if (!session) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
-  // 3. Si hay sesión y el usuario es un administrador, lo redirige al panel de admin.
-  if (profile?.role === 'admin') {
-    return <Redirect href="/admin" />;
-  }
-
-  // 4. Para cualquier otro caso (cliente, repartidor, etc.), lo redirige a la pantalla principal.
-  return <Redirect href="/(tabs)" />;
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#FFC107',
+        tabBarInactiveTintColor: '#6B7280', // Un gris más suave
+        tabBarStyle: {
+          ...styles.tabBar,
+          height: 60 + bottom,
+          paddingBottom: bottom + 5,
+        },
+        tabBarLabelStyle: styles.tabBarLabel,
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Inicio',
+          tabBarIcon: ({ color }) => <Home size={iconSize} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="track"
+        options={{
+          title: 'Seguimiento',
+          tabBarIcon: ({ color }) => <MapPin size={iconSize} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Carrito',
+          tabBarIcon: ({ color }) => <ShoppingCart size={iconSize} color={color} />,
+          tabBarBadge: cartState.items.length > 0 ? cartState.items.length : undefined,
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Pedidos',
+          tabBarIcon: ({ color }) => <ListOrdered size={iconSize} color={color} />,
+        }}
+      />
+       <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <User size={iconSize} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F7F7F7',
+  tabBar: {
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    paddingTop: 5,
   },
+  tabBarLabel: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 10,
+    marginTop: -5, // Reduce el espacio entre el icono y el texto
+  }
 });
