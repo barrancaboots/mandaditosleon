@@ -8,43 +8,29 @@ import { CartProvider } from '@/contexts/CartContext';
 import AnimatedSplashScreen from '@/components/AnimatedSplashScreen';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
 
-// Mantenemos la pantalla de carga nativa visible
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded, error] = useFonts({
-    Poppins_400Regular,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-  });
-
+  const [fontsLoaded, error] = useFonts({ Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold });
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
 
   useEffect(() => {
     if (error) console.error("Error cargando fuentes:", error);
-    if (fontsLoaded && splashAnimationFinished) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded && splashAnimationFinished) SplashScreen.hideAsync();
   }, [fontsLoaded, splashAnimationFinished, error]);
   
-  const handleAnimationFinish = () => {
-    setSplashAnimationFinished(true);
-  };
+  const handleAnimationFinish = () => setSplashAnimationFinished(true);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   if (!splashAnimationFinished) {
     return <AnimatedSplashScreen onAnimationFinish={handleAnimationFinish} />;
   }
 
-  // La app envuelta en todos los providers necesarios
   return (
     <SafeAreaProvider>
       <AuthProvider>
         <CartProvider>
-          {/* Stack principal que permite a Expo Router manejar las rutas automáticamente */}
           <Stack screenOptions={{ headerShown: false }} />
           <StatusBar style="auto" />
         </CartProvider>
