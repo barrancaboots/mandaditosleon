@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { useRenderLog } from '@/hooks/useRenderLog';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AnimatedLogo from '../../components/AnimatedLogo';
@@ -81,6 +82,7 @@ const styles = StyleSheet.create({
 });
 
 export default function LoginScreen() {
+  useRenderLog('LoginScreen')
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

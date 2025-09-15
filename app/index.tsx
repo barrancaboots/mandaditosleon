@@ -1,40 +1,40 @@
-import { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { CartProvider } from '@/contexts/CartContext';
-import AnimatedSplashScreen from '@/components/AnimatedSplashScreen';
-import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
+import React from 'react';
+import { Redirect } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-SplashScreen.preventAutoHideAsync();
+export default function RootIndex() {
+  const { session, profile, loading } = useAuth();
 
-export default function RootLayout() {
-  const [fontsLoaded, error] = useFonts({ Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold });
-  const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
-
-  useEffect(() => {
-    if (error) console.error("Error cargando fuentes:", error);
-    if (fontsLoaded && splashAnimationFinished) SplashScreen.hideAsync();
-  }, [fontsLoaded, splashAnimationFinished, error]);
-  
-  const handleAnimationFinish = () => setSplashAnimationFinished(true);
-
-  if (!fontsLoaded) return null;
-
-  if (!splashAnimationFinished) {
-    return <AnimatedSplashScreen onAnimationFinish={handleAnimationFinish} />;
+  // 1. Muestra un indicador de carga mientras se obtiene la sesión del usuario.
+  //    Si el AuthContext no resuelve este 'loading', la app se quedará aquí.
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#FFC107" />
+      </View>
+    );
   }
 
-  return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-          <StatusBar style="auto" />
-        </CartProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
-  );
+  // 2. Si no hay sesión, redirige al usuario a la pantalla de login.
+  if (!session) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  // 3. Si el usuario es un administrador, lo redirige a su panel.
+  if (profile?.role === 'admin') {
+    return <Redirect href="/admin" />;
+  }
+
+  // 4. Para todos los demás usuarios (clientes, repartidores), redirige a la pantalla principal.
+  return <Redirect href="/(tabs)" />;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F7',
+  },
+});

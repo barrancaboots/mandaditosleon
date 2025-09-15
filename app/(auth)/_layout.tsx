@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import AnimatedSplashScreen from '@/components/AnimatedSplashScreen';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
+import { useRenderLog } from '@/hooks/useRenderLog';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +37,7 @@ export default function RootLayout() {
   if (!splashAnimationFinished) {
     return <AnimatedSplashScreen onAnimationFinish={handleAnimationFinish} />;
   }
-
+useRenderLog('_layout');
   return (
     <SafeAreaProvider>
       <AuthProvider>
