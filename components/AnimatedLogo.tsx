@@ -5,57 +5,42 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withDelay,
-  Easing,
+  withSpring,
 } from 'react-native-reanimated';
 
 // Creamos componentes animados para poder aplicarles estilos
 const AnimatedG = Animated.createAnimatedComponent(G);
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 export default function AnimatedLogo({ width = 200, height = 200 }) {
   // --- Valores de Animación ---
-  // Para la melena (la primera caja)
-  const maneOpacity = useSharedValue(0);
-  const maneScale = useSharedValue(0.7);
-
-  // Para la cara (la segunda caja que cae)
-  const faceTranslateY = useSharedValue(-50);
-  const faceOpacity = useSharedValue(0);
-
-  // Para el pin (el marcador gris que también cae)
-  const pinTranslateY = useSharedValue(-50);
+  const shieldOpacity = useSharedValue(0);
+  const shieldScale = useSharedValue(0.8);
+  const pinTranslateY = useSharedValue(-100);
   const pinOpacity = useSharedValue(0);
-
-  // Para el texto final
   const textOpacity = useSharedValue(0);
 
-  // Inicia la secuencia de animación cuando el componente se monta
   useEffect(() => {
-    // 1. La melena entra con un fade in y un ligero zoom
-    maneOpacity.value = withTiming(1, { duration: 800 });
-    maneScale.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.exp) });
+    // 1. El escudo aparece con un fade in y un suave crecimiento
+    shieldOpacity.value = withTiming(1, { duration: 800 });
+    shieldScale.value = withTiming(1, { duration: 800 });
 
-    // 2. La cara "cae" en su lugar, con un retraso
-    faceOpacity.value = withDelay(500, withTiming(1, { duration: 600 }));
-    faceTranslateY.value = withDelay(500, withTiming(0, { duration: 600, easing: Easing.bounce }));
+    // 2. El pin "cae" en su lugar con un efecto de resorte (spring)
+    pinOpacity.value = withDelay(400, withTiming(1, { duration: 100 }));
+    pinTranslateY.value = withDelay(400, withSpring(0, {
+      damping: 12,
+      stiffness: 90,
+    }));
 
-    // 3. El pin "cae" después, con más retraso
-    pinOpacity.value = withDelay(900, withTiming(1, { duration: 600 }));
-    pinTranslateY.value = withDelay(900, withTiming(0, { duration: 600, easing: Easing.bounce }));
-
-    // 4. El texto aparece al final de todo
-    textOpacity.value = withDelay(1500, withTiming(1, { duration: 800 }));
+    // 3. El texto aparece al final de todo
+    textOpacity.value = withDelay(1200, withTiming(1, { duration: 800 }));
   }, []);
 
   // --- Estilos Animados ---
-  const maneStyle = useAnimatedStyle(() => ({
-    opacity: maneOpacity.value,
-    transform: [{ scale: maneScale.value }],
-  }));
-
-  const faceStyle = useAnimatedStyle(() => ({
-    opacity: faceOpacity.value,
-    transform: [{ translateY: faceTranslateY.value }],
+  const shieldStyle = useAnimatedStyle(() => ({
+    opacity: shieldOpacity.value,
+    transform: [{ scale: shieldScale.value }],
+    // 👇 --- ¡AQUÍ ESTÁ LA CORRECCIÓN! --- 👇
+    // Se ha eliminado la línea 'transformOrigin: 'center''
   }));
   
   const pinStyle = useAnimatedStyle(() => ({
@@ -69,12 +54,8 @@ export default function AnimatedLogo({ width = 200, height = 200 }) {
 
   return (
     <Svg width={width} height={height} viewBox="0 0 100 125">
-      {/* Usamos transform-origin para que el zoom sea desde el centro */}
-      <AnimatedG style={[{ transformOrigin: 'center' }, maneStyle]}>
+      <AnimatedG style={shieldStyle}>
         <Path d="M50 0 L95 25 L85 60 L50 90 L15 60 L5 25 Z" fill="#FFC107"/>
-      </AnimatedG>
-      
-      <AnimatedG style={faceStyle}>
         <Path d="M50 15 L80 35 L75 60 L50 80 L25 60 L20 35 Z" fill="#FFD54F"/>
       </AnimatedG>
       

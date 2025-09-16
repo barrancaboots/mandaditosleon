@@ -42,8 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (data) {
-        // Asignamos el email del usuario de auth al perfil para tenerlo a mano
-        setProfile({ ...data, email: user.email });
+        // Combinamos los datos del perfil con el email del usuario de auth
+        const profileWithEmail = Object.assign({}, data, { email: user.email });
+        setProfile(profileWithEmail);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
