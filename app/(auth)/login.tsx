@@ -14,8 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AnimatedLogo from '../../components/AnimatedLogo';
 import { supabase } from '../../lib/supabase';
+import { devLog } from '../../lib/devLogger';
+import { useRenderLog } from '../../hooks/useRenderLog';
 
-// Los estilos se definen antes del componente para evitar errores
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -33,12 +34,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontFamily: 'Poppins_700Bold',
     color: '#333',
     marginTop: 10,
   },
   subtitle: {
     fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
     color: '#666',
     marginTop: 4,
   },
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   input: {
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#F7F7F7',
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderRadius: 10,
@@ -56,10 +58,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#E5E5E5',
+    fontFamily: 'Poppins_400Regular',
   },
   button: {
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 15,
     alignItems: 'center',
     marginTop: 10,
   },
@@ -70,8 +73,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   buttonText: {
-    color: '#424242',
-    fontWeight: 'bold',
+    color: '#1A1A1A',
+    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     fontSize: 16,
   },
   registerButtonText: {
@@ -81,6 +85,8 @@ const styles = StyleSheet.create({
 });
 
 export default function LoginScreen() {
+  useRenderLog('LoginScreen');
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,6 +103,8 @@ export default function LoginScreen() {
       email: email,
       password: password,
     });
+
+    devLog('Respuesta de API [signInWithPassword]:', { data: loginData, error: loginError });
 
     if (loginError) {
       setLoading(false);
@@ -137,7 +145,7 @@ export default function LoginScreen() {
       >
         <View style={styles.logoContainer}>
           <AnimatedLogo width={180} height={180} />
-         
+          <Text style={styles.title}>Mandaditos León</Text>
           <Text style={styles.subtitle}>Tu mandado, hecho.</Text>
         </View>
 
@@ -164,7 +172,7 @@ export default function LoginScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#424242" />
+              <ActivityIndicator color="#1A1A1A" />
             ) : (
               <Text style={styles.buttonText}>Iniciar Sesión</Text>
             )}

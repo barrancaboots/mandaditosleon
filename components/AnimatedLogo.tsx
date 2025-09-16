@@ -5,85 +5,66 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withDelay,
-  withRepeat,
-  withSequence,
+  withSpring,
 } from 'react-native-reanimated';
 
-// Creamos un componente `Animated.G` para poder animar grupos de SVG
+// Creamos componentes animados para poder aplicarles estilos
 const AnimatedG = Animated.createAnimatedComponent(G);
 
 export default function AnimatedLogo({ width = 200, height = 200 }) {
-  // Valores compartidos para animar la opacidad y escala de cada parte
-  const maneFaceScale = useSharedValue(0.5);
-  const maneFaceOpacity = useSharedValue(0);
-  
-  const pinScale = useSharedValue(0.5);
+  // --- Valores de Animación ---
+  const shieldOpacity = useSharedValue(0);
+  const shieldScale = useSharedValue(0.8);
+  const pinTranslateY = useSharedValue(-100);
   const pinOpacity = useSharedValue(0);
-
   const textOpacity = useSharedValue(0);
 
-  // useEffect se ejecuta una vez para iniciar la secuencia de animación
   useEffect(() => {
-    // 1. Animación "Pop-in" para la melena y cara
-    maneFaceOpacity.value = withTiming(1, { duration: 600 });
-    maneFaceScale.value = withTiming(1, { duration: 600 });
+    // 1. El escudo aparece con un fade in y un suave crecimiento
+    shieldOpacity.value = withTiming(1, { duration: 800 });
+    shieldScale.value = withTiming(1, { duration: 800 });
 
-    // 2. Animación "Pop-in" para el pin (con retraso)
-    pinOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    pinScale.value = withDelay(400, withTiming(1, { duration: 600 }));
+    // 2. El pin "cae" en su lugar con un efecto de resorte (spring)
+    pinOpacity.value = withDelay(400, withTiming(1, { duration: 100 }));
+    pinTranslateY.value = withDelay(400, withSpring(0, {
+      damping: 12,
+      stiffness: 90,
+    }));
 
-    // 3. Animación de "Pulso" para el pin (inicia después y se repite)
-    pinScale.value = withDelay(
-      1500, // Empieza después de 1.5s
-      withRepeat(
-        withSequence(
-          withTiming(1.1, { duration: 1000 }),
-          withTiming(1, { duration: 1000 })
-        ),
-        -1, // -1 significa que se repite infinitamente
-        true // true para que la animación sea reversible (vaya y vuelva)
-      )
-    );
-    
-    // 4. Animación "Fade-in" para el texto (con más retraso)
-    textOpacity.value = withDelay(800, withTiming(1, { duration: 800 }));
+    // 3. El texto aparece al final de todo
+    textOpacity.value = withDelay(1200, withTiming(1, { duration: 800 }));
   }, []);
 
-  // Creamos los estilos animados que se aplicarán a los componentes
-  const maneFaceAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: maneFaceOpacity.value,
-    transform: [{ scale: maneFaceScale.value }],
+  // --- Estilos Animados ---
+  const shieldStyle = useAnimatedStyle(() => ({
+    opacity: shieldOpacity.value,
+    transform: [{ scale: shieldScale.value }],
+    // 👇 --- ¡AQUÍ ESTÁ LA CORRECCIÓN! --- 👇
+    // Se ha eliminado la línea 'transformOrigin: 'center''
   }));
-
-  const pinAnimatedStyle = useAnimatedStyle(() => ({
+  
+  const pinStyle = useAnimatedStyle(() => ({
     opacity: pinOpacity.value,
-    transform: [{ scale: pinScale.value }],
+    transform: [{ translateY: pinTranslateY.value }],
   }));
 
-  const textAnimatedStyle = useAnimatedStyle(() => ({
+  const textStyle = useAnimatedStyle(() => ({
     opacity: textOpacity.value,
   }));
 
   return (
-    <Svg
-      width={width}
-      height={height}
-      viewBox="0 0 100 125"
-    >
-      {/* Melena y cara animadas juntas */}
-      <AnimatedG style={[{ transformOrigin: 'center' }, maneFaceAnimatedStyle]}>
+    <Svg width={width} height={height} viewBox="0 0 100 125">
+      <AnimatedG style={shieldStyle}>
         <Path d="M50 0 L95 25 L85 60 L50 90 L15 60 L5 25 Z" fill="#FFC107"/>
         <Path d="M50 15 L80 35 L75 60 L50 80 L25 60 L20 35 Z" fill="#FFD54F"/>
       </AnimatedG>
-
-      {/* Pin animado por separado */}
-      <AnimatedG style={[{ transformOrigin: 'center' }, pinAnimatedStyle]}>
+      
+      <AnimatedG style={pinStyle}>
         <Path d="M50 40 C45 40 40 45 40 50 C40 60 50 75 50 75 C50 75 60 60 60 50 C60 45 55 40 50 40 Z" fill="#424242"/>
         <Path d="M50 45 C52.76 45 55 47.24 55 50 C55 52.76 52.76 55 50 55 C47.24 55 45 52.76 45 50 C45 47.24 47.24 45 50 45 Z" fill="#FFFFFF"/>
       </AnimatedG>
       
-      {/* Texto animado al final */}
-      <AnimatedG style={textAnimatedStyle}>
+      <AnimatedG style={textStyle}>
         <Text x="50" y="105" fill="#333333" fontSize="12" fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">
           Mandaditos
         </Text>

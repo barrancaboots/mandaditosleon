@@ -2,7 +2,7 @@
   "expo": {
     "name": "mandaditos-nuevo",
     "slug": "mandaditos-nuevo",
-    "scheme": "mandaditosleon", 
+    "scheme": "mandaditosleon",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
@@ -22,7 +22,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.mandaditosleon.mandaditosnuevo"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

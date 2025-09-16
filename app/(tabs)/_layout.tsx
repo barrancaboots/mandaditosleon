@@ -1,21 +1,21 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
-import { Home, ShoppingCart, ListOrdered, User, MapPin } from 'lucide-react-native'; // 👈 Importamos los nuevos iconos
+import { Home, ShoppingCart, ListOrdered, User, MapPin } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '@/contexts/CartContext';
 
 export default function TabLayout() {
   const { bottom } = useSafeAreaInsets();
   const { state: cartState } = useCart();
-  const iconSize = 26; // 👈 Tamaño estandarizado
+  const iconSize = 26; // Tamaño estandarizado para todos los iconos
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#FFC107',
-        tabBarInactiveTintColor: '#6B7280', // Un gris más suave
+        tabBarInactiveTintColor: '#6B7280', // Un gris más suave y consistente
         tabBarStyle: {
           ...styles.tabBar,
           height: 60 + bottom,
@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: -5, // Reduce el espacio entre el icono y el texto
   }
-});
+}); 
