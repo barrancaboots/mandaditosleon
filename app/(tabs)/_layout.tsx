@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { Home, ShoppingCart, ListOrdered, User, MapPin } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCart } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 
 export default function TabLayout() {
   const { bottom } = useSafeAreaInsets();

@@ -1,7 +1,7 @@
 // contexts/CartContext.tsx
 
 import React, { createContext, useContext, useReducer } from 'react';
-import { Database } from '../types/database'; // 👈 Importamos el tipo principal de la BD
+import { Database } from '../types/database'; 
 import { devLog } from '../lib/devLogger';
 
 // Derivamos el tipo Product para que siempre coincida con el esquema
