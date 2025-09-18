@@ -31,33 +31,5 @@
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>
-    
-    
-    
-    
-
-    {/* ======================================================= */}
-    {/* 👇 TU NUEVA CLAVE DE API DE GOOGLE MAPS VA AQUÍ 👇      */}
-    {/* ======================================================= */}
-    
-    
-    
-    
-  
   </application>
-  
-  
-  
-  
-  
-  
-  
-  {/* Permiso para la localización */}
-  
-  
-
-  
-  
-  
-
 </manifest>

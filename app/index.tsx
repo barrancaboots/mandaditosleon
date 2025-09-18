@@ -6,8 +6,6 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 export default function RootIndex() {
   const { session, profile, loading } = useAuth();
 
-  // 1. Muestra un indicador de carga mientras se obtiene la sesión del usuario.
-  //    Si el AuthContext no resuelve este 'loading', la app se quedará aquí.
   if (loading) {
     return (
       <View style={styles.container}>
@@ -16,17 +14,14 @@ export default function RootIndex() {
     );
   }
 
-  // 2. Si no hay sesión, redirige al usuario a la pantalla de login.
   if (!session) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // 3. Si el usuario es un administrador, lo redirige a su panel.
   if (profile?.role === 'admin') {
     return <Redirect href="/admin" />;
   }
 
-  // 4. Para todos los demás usuarios (clientes, repartidores), redirige a la pantalla principal.
   return <Redirect href="/(tabs)" />;
 }
 
