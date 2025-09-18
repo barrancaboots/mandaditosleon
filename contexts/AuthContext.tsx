@@ -3,6 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
+// Deriva el tipo Profile directamente del esquema para máxima consistencia
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthContextType {
@@ -29,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Esta función se encarga de buscar el perfil del usuario
   const fetchProfile = async (user: User) => {
     try {
       const { data, error } = await supabase
@@ -38,29 +40,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) throw error;
+
       if (data) {
-        setProfile({ ...data, email: user.email });
+        // Combinamos los datos del perfil con el email del usuario de auth
+        const profileWithEmail = Object.assign({}, data, { email: user.email });
+        setProfile(profileWithEmail);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setProfile(null);
+      setProfile(null); // Si hay un error, nos aseguramos de que el perfil sea nulo
     }
   };
 
   useEffect(() => {
+    // Escucha los cambios en el estado de autenticación (login, logout, inicio)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        setLoading(true);
+        setLoading(true); // Inicia la carga CADA VEZ que cambia la sesión
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         
         if (currentUser) {
+          // Si hay un usuario, busca su perfil
           await fetchProfile(currentUser);
         } else {
+          // Si no hay sesión (logout o inicio sin sesión), limpia el perfil
           setProfile(null);
         }
-        setLoading(false);
+        setLoading(false); // Finaliza la carga DESPUÉS de todas las operaciones
       }
     );
 

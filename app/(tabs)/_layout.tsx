@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { Home, ShoppingCart, ListOrdered, User, MapPin } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCart } from '@/contexts/CartContext';
+import { useCart } from '@/contexts/AuthContext';
 
 export default function TabLayout() {
   const { bottom } = useSafeAreaInsets();
@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: -5, // Reduce el espacio entre el icono y el texto
   }
-}); 
+});
