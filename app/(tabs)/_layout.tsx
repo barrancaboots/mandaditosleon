@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: -5, // Reduce el espacio entre el icono y el texto
   }
-}); 
+});
